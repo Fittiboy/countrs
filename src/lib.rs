@@ -181,11 +181,10 @@ impl Display for Counter {
 
 impl Display for Direction {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let string = match self {
-            Direction::Up => "Up",
-            Direction::Down => "Down",
-        };
-        write!(f, "{}", string)
+        match self {
+            Direction::Up => write!(f, "Up"),
+            Direction::Down => write!(f, "Down"),
+        }
     }
 }
 
