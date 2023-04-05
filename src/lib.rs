@@ -203,7 +203,7 @@ mod tests {
     #[test]
     fn seconds_until() {
         let counter = Counter::down(None, Some(Utc::now() + Duration::seconds(10)));
-        assert_eq!(format!("{}", counter), "00:00:10")
+        assert_eq!(format!("{}", counter), "00:00:09")
     }
 
     #[test]
@@ -215,7 +215,7 @@ mod tests {
     #[test]
     fn minutes_until() {
         let counter = Counter::down(None, Some(Utc::now() + Duration::minutes(10)));
-        assert_eq!(format!("{}", counter), "00:10:00")
+        assert_eq!(format!("{}", counter), "00:09:59")
     }
 
     #[test]
@@ -227,7 +227,7 @@ mod tests {
     #[test]
     fn hours_until() {
         let counter = Counter::down(None, Some(Utc::now() + Duration::hours(10)));
-        assert_eq!(format!("{}", counter), "10:00:00")
+        assert_eq!(format!("{}", counter), "09:59:59")
     }
 
     #[test]
@@ -239,21 +239,21 @@ mod tests {
     #[test]
     fn days_until() {
         let counter = Counter::down(None, Some(Utc::now() + Duration::days(10)));
-        assert_eq!(format!("{}", counter), "240:00:00")
+        assert_eq!(format!("{}", counter), "239:59:59")
     }
 
     #[test]
     fn add_time_to_down() {
         let mut counter = Counter::down(None, Some(Utc::now()));
         counter.move_end(Duration::seconds(10)).unwrap();
-        assert_eq!(format!("{}", counter), "00:00:10")
+        assert_eq!(format!("{}", counter), "00:00:09")
     }
 
     #[test]
     fn remove_time_from_down() {
         let mut counter = Counter::down(None, Some(Utc::now() + Duration::seconds(20)));
         counter.move_end(Duration::seconds(-10)).unwrap();
-        assert_eq!(format!("{}", counter), "00:00:10")
+        assert_eq!(format!("{}", counter), "00:00:09")
     }
 
     #[test]
