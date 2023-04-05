@@ -63,7 +63,10 @@ impl Counter<Up> {
 }
 
 fn hms(duration: Duration) -> (i64, i64, i64) {
-    let total_seconds = duration.num_seconds();
+    let total_seconds = match duration.num_seconds() {
+        num if num >= 0 => num,
+        _ => 0,
+    };
     let seconds = total_seconds % 60;
     let minutes = total_seconds / 60 % 60;
     let hours = total_seconds / 3600;
@@ -174,5 +177,54 @@ mod tests {
     fn days_until() {
         let counter = Counter::down(None, Some(Utc::now() + Duration::days(10)));
         assert_eq!(format!("{}", counter), "240:00:00")
+    }
+
+    #[test]
+    fn add_time_to_down() {
+        let mut counter = Counter::down(None, Some(Utc::now()));
+        counter.move_end(Duration::seconds(10)).unwrap();
+        assert_eq!(format!("{}", counter), "00:00:10")
+    }
+
+    #[test]
+    fn remove_time_from_down() {
+        let mut counter = Counter::down(None, Some(Utc::now() + Duration::seconds(20)));
+        counter.move_end(Duration::seconds(-10)).unwrap();
+        assert_eq!(format!("{}", counter), "00:00:10")
+    }
+
+    #[test]
+    fn remove_time_from_down_past_zero() {
+        let mut counter = Counter::down(None, Some(Utc::now()));
+        counter.move_end(Duration::seconds(-10)).unwrap();
+        assert_eq!(format!("{}", counter), "00:00:00")
+    }
+
+    #[test]
+    fn add_time_to_up() {
+        let mut counter = Counter::up(Some(Utc::now()), None);
+        counter.move_start(Duration::seconds(-10)).unwrap();
+        assert_eq!(format!("{}", counter), "00:00:10")
+    }
+
+    #[test]
+    fn remove_time_from_up() {
+        let mut counter = Counter::up(Some(Utc::now() - Duration::seconds(20)), None);
+        counter.move_start(Duration::seconds(10)).unwrap();
+        assert_eq!(format!("{}", counter), "00:00:10")
+    }
+
+    #[test]
+    fn add_time_to_up_past_zero() {
+        let mut counter = Counter::up(Some(Utc::now()), None);
+        counter.move_start(Duration::seconds(10)).unwrap();
+        assert_eq!(format!("{}", counter), "00:00:00")
+    }
+
+    #[test]
+    #[should_panic]
+    fn too_much_time_causes_overflow() {
+        let mut counter = Counter::up(None, None);
+        counter.move_start(Duration::weeks(i64::MAX)).unwrap();
     }
 }
