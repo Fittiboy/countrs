@@ -1,4 +1,4 @@
-use countrs::times::{Duration, TimeStamp};
+use countrs::times::{Duration, Time, TimeStamp, TimeUnits};
 use countrs::Counter;
 
 fn main() {

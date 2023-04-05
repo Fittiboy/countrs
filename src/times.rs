@@ -83,12 +83,24 @@ impl Sub<Self> for TimeStamp {
     }
 }
 
-impl TimeStamp {
-    pub fn now() -> Self {
+pub trait Time {
+    type Duration;
+
+    fn now() -> Self;
+
+    fn add(&self, duration: Self::Duration) -> Result<Self, TimeOverflow>
+    where
+        Self: Sized;
+}
+
+impl Time for TimeStamp {
+    type Duration = Duration;
+
+    fn now() -> Self {
         TimeStamp { time: Utc::now() }
     }
 
-    pub fn add(&self, duration: Duration) -> Result<TimeStamp, TimeOverflow> {
+    fn add(&self, duration: Duration) -> Result<TimeStamp, TimeOverflow> {
         Ok(TimeStamp {
             time: self
                 .time
@@ -98,38 +110,52 @@ impl TimeStamp {
     }
 }
 
-impl Duration {
-    pub fn seconds(seconds: i64) -> Self {
+pub trait TimeUnits {
+    fn seconds(seconds: i64) -> Self;
+
+    fn minutes(minutes: i64) -> Self;
+
+    fn hours(hours: i64) -> Self;
+
+    fn days(days: i64) -> Self;
+
+    fn weeks(weeks: i64) -> Self;
+
+    fn num_seconds(&self) -> i64;
+}
+
+impl TimeUnits for Duration {
+    fn seconds(seconds: i64) -> Self {
         Duration {
             duration: chrono::Duration::seconds(seconds),
         }
     }
 
-    pub fn minutes(minutes: i64) -> Self {
+    fn minutes(minutes: i64) -> Self {
         Duration {
             duration: chrono::Duration::minutes(minutes),
         }
     }
 
-    pub fn hours(hours: i64) -> Self {
+    fn hours(hours: i64) -> Self {
         Duration {
             duration: chrono::Duration::hours(hours),
         }
     }
 
-    pub fn days(days: i64) -> Self {
+    fn days(days: i64) -> Self {
         Duration {
             duration: chrono::Duration::days(days),
         }
     }
 
-    pub fn weeks(weeks: i64) -> Self {
+    fn weeks(weeks: i64) -> Self {
         Duration {
             duration: chrono::Duration::weeks(weeks),
         }
     }
 
-    pub fn num_seconds(&self) -> i64 {
+    fn num_seconds(&self) -> i64 {
         self.duration.num_seconds()
     }
 }

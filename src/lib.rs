@@ -1,16 +1,17 @@
-use crate::times::{Duration, TimeOverflow, TimeStamp};
+use crate::times::{Time, TimeOverflow, TimeUnits};
 use std::fmt::{self, Display, Formatter};
 use std::fs::{self, read_to_string};
 use std::io;
+use std::ops::Sub;
 use std::path::Path;
 use std::str::FromStr;
 
 pub mod times;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Counter {
-    pub start: TimeStamp,
-    pub end: TimeStamp,
+pub struct Counter<T> {
+    pub start: T,
+    pub end: T,
     pub direction: Direction,
 }
 
@@ -43,8 +44,12 @@ impl FromStr for Direction {
     }
 }
 
-impl Counter {
-    pub fn down(start: Option<TimeStamp>, end: Option<TimeStamp>) -> Counter {
+impl<T, D> Counter<T>
+where
+    T: Copy + Default + Display + Time<Duration = D> + FromStr + Sub<T, Output = D>,
+    D: TimeUnits,
+{
+    pub fn down(start: Option<T>, end: Option<T>) -> Counter<T> {
         Counter {
             start: start.unwrap_or_default(),
             end: end.unwrap_or_default(),
@@ -52,7 +57,7 @@ impl Counter {
         }
     }
 
-    pub fn up(start: Option<TimeStamp>, end: Option<TimeStamp>) -> Counter {
+    pub fn up(start: Option<T>, end: Option<T>) -> Counter<T> {
         Counter {
             start: start.unwrap_or_default(),
             end: end.unwrap_or_default(),
@@ -60,7 +65,7 @@ impl Counter {
         }
     }
 
-    pub fn to_file<T: AsRef<Path>>(&self, path: T) -> io::Result<()> {
+    pub fn to_file<P: AsRef<Path>>(&self, path: P) -> io::Result<()> {
         fs::write(
             path,
             format!(
@@ -73,11 +78,11 @@ impl Counter {
         Ok(())
     }
 
-    pub fn from_file<T: AsRef<Path>>(path: T) -> io::Result<Counter> {
+    pub fn from_file<P: AsRef<Path>>(path: P) -> io::Result<Counter<T>> {
         let lines = read_to_string(path)?;
         let mut lines = lines.split("\n");
         if let (Some(s), Some(e), Some(d)) = (lines.next(), lines.next(), lines.next()) {
-            let start = TimeStamp::from_str(s)
+            let start = T::from_str(s)
                 .map_err(|_| {
                     io::Error::new(
                         io::ErrorKind::InvalidData,
@@ -85,7 +90,7 @@ impl Counter {
                     )
                 })?
                 .into();
-            let end = TimeStamp::from_str(e)
+            let end = T::from_str(e)
                 .map_err(|_| {
                     io::Error::new(
                         io::ErrorKind::InvalidData,
@@ -124,8 +129,8 @@ impl Counter {
 
     pub fn counter(&self) -> (i64, i64, i64) {
         let duration = match self.direction {
-            Direction::Down => self.end - TimeStamp::now(),
-            Direction::Up => TimeStamp::now() - self.start,
+            Direction::Down => self.end - T::now(),
+            Direction::Up => T::now() - self.start,
         };
         match duration.num_seconds() {
             num if num >= 0 => (num / 3600, num / 60 % 60, num % 60),
@@ -133,18 +138,22 @@ impl Counter {
         }
     }
 
-    pub fn try_move_start(&mut self, offset: Duration) -> Result<(), TimeOverflow> {
+    pub fn try_move_start(&mut self, offset: D) -> Result<(), TimeOverflow> {
         self.start = self.start.add(offset)?;
         Ok(())
     }
 
-    pub fn try_move_end(&mut self, offset: Duration) -> Result<(), TimeOverflow> {
+    pub fn try_move_end(&mut self, offset: D) -> Result<(), TimeOverflow> {
         self.end = self.end.add(offset)?;
         Ok(())
     }
 }
 
-impl Display for Counter {
+impl<T, D> Display for Counter<T>
+where
+    T: Copy + Default + Display + Time<Duration = D> + FromStr + Sub<T, Output = D>,
+    D: TimeUnits,
+{
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let (hours, minutes, seconds) = self.counter();
         write!(f, "{:0>2}:{:0>2}:{:0>2}", hours, minutes, seconds)
@@ -162,6 +171,7 @@ impl Display for Direction {
 
 #[cfg(test)]
 mod tests {
+    use crate::times::*;
     use crate::*;
 
     #[test]
@@ -257,7 +267,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn too_much_time_causes_overflow() {
-        let mut counter = Counter::up(None, None);
+        let mut counter = Counter::<TimeStamp>::up(None, None);
         counter.try_move_start(Duration::weeks(i64::MAX)).unwrap();
     }
 
