@@ -135,21 +135,13 @@ impl Counter {
     }
 
     pub fn try_move_start(&mut self, offset: Duration) -> Result<(), TimeOverflow> {
-        if let Some(new_start) = self.start.checked_add_signed(offset) {
-            self.start = new_start;
-            Ok(())
-        } else {
-            Err(TimeOverflow)
-        }
+        self.start = self.start.checked_add_signed(offset).ok_or(TimeOverflow)?;
+        Ok(())
     }
 
     pub fn try_move_end(&mut self, offset: Duration) -> Result<(), TimeOverflow> {
-        if let Some(new_end) = self.end.checked_add_signed(offset) {
-            self.end = new_end;
-            Ok(())
-        } else {
-            Err(TimeOverflow)
-        }
+        self.end = self.end.checked_add_signed(offset).ok_or(TimeOverflow)?;
+        Ok(())
     }
 }
 
