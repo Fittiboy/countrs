@@ -308,4 +308,16 @@ mod tests {
 
         assert_eq!(counter, read_counter)
     }
+
+    #[test]
+    fn flip_up_and_down() {
+        let start = Utc::now() - Duration::seconds(10);
+        let end = start + Duration::seconds(20);
+        let mut counter = Counter::down(Some(start), Some(end));
+        assert_eq!(counter.to_string(), "00:00:09");
+        counter.flip();
+        assert_eq!(counter.to_string(), "00:00:10");
+        counter.flip();
+        assert_eq!(counter.to_string(), "00:00:09");
+    }
 }
