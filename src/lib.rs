@@ -33,12 +33,10 @@ impl FromStr for Direction {
     type Err = ConversionError;
 
     fn from_str(string: &str) -> Result<Self, ConversionError> {
-        if string == "Up" {
-            Ok(Direction::Up)
-        } else if string == "Down" {
-            Ok(Direction::Down)
-        } else {
-            Err(ConversionError)
+        match string {
+            "Up" => Ok(Direction::Up),
+            "Down" => Ok(Direction::Down),
+            _ => Err(ConversionError),
         }
     }
 }
