@@ -142,7 +142,7 @@ impl Counter {
         }
     }
 
-    pub fn move_start(&mut self, offset: Duration) -> Result<(), TimeOverflow> {
+    pub fn try_move_start(&mut self, offset: Duration) -> Result<(), TimeOverflow> {
         if let Some(new_start) = self.start.checked_add_signed(offset) {
             self.start = new_start;
             Ok(())
@@ -151,7 +151,7 @@ impl Counter {
         }
     }
 
-    pub fn move_end(&mut self, offset: Duration) -> Result<(), TimeOverflow> {
+    pub fn try_move_end(&mut self, offset: Duration) -> Result<(), TimeOverflow> {
         if let Some(new_end) = self.end.checked_add_signed(offset) {
             self.end = new_end;
             Ok(())
@@ -245,42 +245,42 @@ mod tests {
     #[test]
     fn add_time_to_down() {
         let mut counter = Counter::down(None, Some(Utc::now()));
-        counter.move_end(Duration::seconds(10)).unwrap();
+        counter.try_move_end(Duration::seconds(10)).unwrap();
         assert_eq!(format!("{}", counter), "00:00:09")
     }
 
     #[test]
     fn remove_time_from_down() {
         let mut counter = Counter::down(None, Some(Utc::now() + Duration::seconds(20)));
-        counter.move_end(Duration::seconds(-10)).unwrap();
+        counter.try_move_end(Duration::seconds(-10)).unwrap();
         assert_eq!(format!("{}", counter), "00:00:09")
     }
 
     #[test]
     fn remove_time_from_down_past_zero() {
         let mut counter = Counter::down(None, Some(Utc::now()));
-        counter.move_end(Duration::seconds(-10)).unwrap();
+        counter.try_move_end(Duration::seconds(-10)).unwrap();
         assert_eq!(format!("{}", counter), "00:00:00")
     }
 
     #[test]
     fn add_time_to_up() {
         let mut counter = Counter::up(Some(Utc::now()), None);
-        counter.move_start(Duration::seconds(-10)).unwrap();
+        counter.try_move_start(Duration::seconds(-10)).unwrap();
         assert_eq!(format!("{}", counter), "00:00:10")
     }
 
     #[test]
     fn remove_time_from_up() {
         let mut counter = Counter::up(Some(Utc::now() - Duration::seconds(20)), None);
-        counter.move_start(Duration::seconds(10)).unwrap();
+        counter.try_move_start(Duration::seconds(10)).unwrap();
         assert_eq!(format!("{}", counter), "00:00:10")
     }
 
     #[test]
     fn add_time_to_up_past_zero() {
         let mut counter = Counter::up(Some(Utc::now()), None);
-        counter.move_start(Duration::seconds(10)).unwrap();
+        counter.try_move_start(Duration::seconds(10)).unwrap();
         assert_eq!(format!("{}", counter), "00:00:00")
     }
 
@@ -288,7 +288,7 @@ mod tests {
     #[should_panic]
     fn too_much_time_causes_overflow() {
         let mut counter = Counter::up(None, None);
-        counter.move_start(Duration::weeks(i64::MAX)).unwrap();
+        counter.try_move_start(Duration::weeks(i64::MAX)).unwrap();
     }
 
     #[test]
