@@ -191,49 +191,49 @@ mod tests {
     #[test]
     fn seconds_since() {
         let counter = Counter::up(Some(Utc::now() - Duration::seconds(10)), None);
-        assert_eq!(format!("{}", counter), "00:00:10")
+        assert_eq!(counter.to_string(), "00:00:10")
     }
 
     #[test]
     fn seconds_until() {
         let counter = Counter::down(None, Some(Utc::now() + Duration::seconds(10)));
-        assert_eq!(format!("{}", counter), "00:00:09")
+        assert_eq!(counter.to_string(), "00:00:09")
     }
 
     #[test]
     fn minutes_since() {
         let counter = Counter::up(Some(Utc::now() - Duration::minutes(10)), None);
-        assert_eq!(format!("{}", counter), "00:10:00")
+        assert_eq!(counter.to_string(), "00:10:00")
     }
 
     #[test]
     fn minutes_until() {
         let counter = Counter::down(None, Some(Utc::now() + Duration::minutes(10)));
-        assert_eq!(format!("{}", counter), "00:09:59")
+        assert_eq!(counter.to_string(), "00:09:59")
     }
 
     #[test]
     fn hours_since() {
         let counter = Counter::up(Some(Utc::now() - Duration::hours(10)), None);
-        assert_eq!(format!("{}", counter), "10:00:00")
+        assert_eq!(counter.to_string(), "10:00:00")
     }
 
     #[test]
     fn hours_until() {
         let counter = Counter::down(None, Some(Utc::now() + Duration::hours(10)));
-        assert_eq!(format!("{}", counter), "09:59:59")
+        assert_eq!(counter.to_string(), "09:59:59")
     }
 
     #[test]
     fn days_since() {
         let counter = Counter::up(Some(Utc::now() - Duration::days(10)), None);
-        assert_eq!(format!("{}", counter), "240:00:00")
+        assert_eq!(counter.to_string(), "240:00:00")
     }
 
     #[test]
     fn days_until() {
         let counter = Counter::down(None, Some(Utc::now() + Duration::days(10)));
-        assert_eq!(format!("{}", counter), "239:59:59")
+        assert_eq!(counter.to_string(), "239:59:59")
     }
 
     #[test]
@@ -247,35 +247,35 @@ mod tests {
     fn remove_time_from_down() {
         let mut counter = Counter::down(None, Some(Utc::now() + Duration::seconds(20)));
         counter.try_move_end(Duration::seconds(-10)).unwrap();
-        assert_eq!(format!("{}", counter), "00:00:09")
+        assert_eq!(counter.to_string(), "00:00:09")
     }
 
     #[test]
     fn remove_time_from_down_past_zero() {
         let mut counter = Counter::down(None, Some(Utc::now()));
         counter.try_move_end(Duration::seconds(-10)).unwrap();
-        assert_eq!(format!("{}", counter), "00:00:00")
+        assert_eq!(counter.to_string(), "00:00:00")
     }
 
     #[test]
     fn add_time_to_up() {
         let mut counter = Counter::up(Some(Utc::now()), None);
         counter.try_move_start(Duration::seconds(-10)).unwrap();
-        assert_eq!(format!("{}", counter), "00:00:10")
+        assert_eq!(counter.to_string(), "00:00:10")
     }
 
     #[test]
     fn remove_time_from_up() {
         let mut counter = Counter::up(Some(Utc::now() - Duration::seconds(20)), None);
         counter.try_move_start(Duration::seconds(10)).unwrap();
-        assert_eq!(format!("{}", counter), "00:00:10")
+        assert_eq!(counter.to_string(), "00:00:10")
     }
 
     #[test]
     fn add_time_to_up_past_zero() {
         let mut counter = Counter::up(Some(Utc::now()), None);
         counter.try_move_start(Duration::seconds(10)).unwrap();
-        assert_eq!(format!("{}", counter), "00:00:00")
+        assert_eq!(counter.to_string(), "00:00:00")
     }
 
     #[test]
