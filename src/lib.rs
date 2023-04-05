@@ -63,14 +63,10 @@ impl Counter<Up> {
 }
 
 fn hms(duration: Duration) -> (i64, i64, i64) {
-    let total_seconds = match duration.num_seconds() {
-        num if num >= 0 => num,
-        _ => 0,
-    };
-    let seconds = total_seconds % 60;
-    let minutes = total_seconds / 60 % 60;
-    let hours = total_seconds / 3600;
-    (hours, minutes, seconds)
+    match duration.num_seconds() {
+        num if num >= 0 => (num / 3600, num / 60 % 60, num % 60),
+        _ => (0, 0, 0),
+    }
 }
 
 impl<T> Counter<T> {
