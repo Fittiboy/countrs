@@ -119,16 +119,11 @@ impl Counter {
         }
     }
 
-    pub fn flipped(self) -> Counter {
-        let direction = match self.direction {
+    pub fn flip(&mut self) {
+        self.direction = match self.direction {
             Direction::Up => Direction::Down,
             Direction::Down => Direction::Up,
         };
-        Counter {
-            start: self.start,
-            end: self.end,
-            direction,
-        }
     }
 
     pub fn counter(&self) -> (i64, i64, i64) {
