@@ -1,75 +1,59 @@
 use chrono::{DateTime, Duration, Utc};
 use std::fmt::{self, Display, Formatter};
-use std::marker::PhantomData;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Counter<T> {
+pub struct Counter {
     pub start: DateTime<Utc>,
     pub end: DateTime<Utc>,
-    pub direction: PhantomData<T>,
+    pub direction: Direction,
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Up;
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Down;
-
-pub trait Count {
-    fn count_directionless(&self) -> (i64, i64, i64);
+pub enum Direction {
+    Up,
+    Down,
 }
 
-impl Counter<Down> {
-    pub fn down(start: Option<DateTime<Utc>>, end: Option<DateTime<Utc>>) -> Counter<Down> {
+impl Counter {
+    pub fn down(start: Option<DateTime<Utc>>, end: Option<DateTime<Utc>>) -> Counter {
         Counter {
             start: start.unwrap_or_default(),
             end: end.unwrap_or_default() + Duration::seconds(1), // Time is quirky
-            direction: PhantomData::<Down>,
+            direction: Direction::Down,
         }
     }
 
-    pub fn flipped(self) -> Counter<Up> {
-        Counter {
-            start: self.start,
-            end: self.end,
-            direction: PhantomData::<Up>,
-        }
-    }
-
-    pub fn until(&self) -> (i64, i64, i64) {
-        hms(self.end - Utc::now())
-    }
-}
-
-impl Counter<Up> {
-    pub fn up(start: Option<DateTime<Utc>>, end: Option<DateTime<Utc>>) -> Counter<Up> {
+    pub fn up(start: Option<DateTime<Utc>>, end: Option<DateTime<Utc>>) -> Counter {
         Counter {
             start: start.unwrap_or_default(),
-            end: end.unwrap_or_default(),
-            direction: PhantomData::<Up>,
+            end: end.unwrap_or_default() + Duration::seconds(1),
+            direction: Direction::Up,
         }
     }
 
-    pub fn flipped(self) -> Counter<Down> {
+    pub fn flipped(self) -> Counter {
+        let direction = match self.direction {
+            Direction::Up => Direction::Down,
+            Direction::Down => Direction::Up,
+        };
         Counter {
             start: self.start,
             end: self.end,
-            direction: PhantomData::<Down>,
+            direction,
         }
     }
 
-    pub fn since(&self) -> (i64, i64, i64) {
-        hms(Utc::now() - self.start)
+    pub fn counter(&self) -> (i64, i64, i64) {
+        let duration = match self.direction {
+            Direction::Down => self.end - Utc::now(),
+            Direction::Up => Utc::now() - self.start,
+        };
+        match duration.num_seconds() {
+            num if num >= 0 => (num / 3600, num / 60 % 60, num % 60),
+            _ => (0, 0, 0),
+        }
     }
-}
 
-fn hms(duration: Duration) -> (i64, i64, i64) {
-    match duration.num_seconds() {
-        num if num >= 0 => (num / 3600, num / 60 % 60, num % 60),
-        _ => (0, 0, 0),
-    }
-}
-
-impl<T> Counter<T> {
     pub fn move_start(&mut self, offset: Duration) -> Result<(), TimeOverflow> {
         if let Some(new_start) = self.start.checked_add_signed(offset) {
             self.start = new_start;
@@ -100,25 +84,10 @@ impl Display for TimeOverflow {
     }
 }
 
-impl Count for Counter<Down> {
-    fn count_directionless(&self) -> (i64, i64, i64) {
-        self.until()
-    }
-}
-
-impl Count for Counter<Up> {
-    fn count_directionless(&self) -> (i64, i64, i64) {
-        self.since()
-    }
-}
-
-impl<T> Display for Counter<T>
-where
-    Self: Count,
-{
+impl Display for Counter {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let (hours, minutes, seconds) = self.count_directionless();
-        write!(f, "{:0>2}:{:0>2}:{:0>2}", hours, minutes, seconds,)
+        let (hours, minutes, seconds) = self.counter();
+        write!(f, "{:0>2}:{:0>2}:{:0>2}", hours, minutes, seconds)
     }
 }
 
