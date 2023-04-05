@@ -76,46 +76,43 @@ impl Counter {
     pub fn from_file<T: AsRef<Path>>(path: T) -> io::Result<Counter> {
         let lines = read_to_string(path)?;
         let mut lines = lines.split("\n");
-        match (lines.next(), lines.next(), lines.next()) {
-            (Some(start), Some(end), Some(direction)) => {
-                let start = DateTime::parse_from_rfc3339(start)
-                    .map_err(|_| {
-                        io::Error::new(
-                            io::ErrorKind::InvalidData,
-                            "File does not contain valid start data",
-                        )
-                    })?
-                    .into();
-                let end = DateTime::parse_from_rfc3339(end)
-                    .map_err(|_| {
-                        io::Error::new(
-                            io::ErrorKind::InvalidData,
-                            "File does not contain valid end data",
-                        )
-                    })?
-                    .into();
-                let direction = match direction.parse() {
-                    Ok(direction) => direction,
-                    Err(_) => {
-                        return Err(io::Error::new(
-                            io::ErrorKind::InvalidData,
-                            "File doesn ot contain valid direciton data",
-                        ))
-                    }
-                };
+        if let (Some(s), Some(e), Some(d)) = (lines.next(), lines.next(), lines.next()) {
+            let start = DateTime::parse_from_rfc3339(s)
+                .map_err(|_| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        "File does not contain valid start data",
+                    )
+                })?
+                .into();
+            let end = DateTime::parse_from_rfc3339(e)
+                .map_err(|_| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        "File does not contain valid end data",
+                    )
+                })?
+                .into();
+            let direction = match d.parse() {
+                Ok(direction) => direction,
+                Err(_) => {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        "File doesn ot contain complete direciton data",
+                    ))
+                }
+            };
 
-                Ok(Counter {
-                    start,
-                    end,
-                    direction,
-                })
-            }
-            _ => {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    "File does not contain valid counter data",
-                ))
-            }
+            Ok(Counter {
+                start,
+                end,
+                direction,
+            })
+        } else {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "File does not contain valid counter data",
+            ));
         }
     }
 
