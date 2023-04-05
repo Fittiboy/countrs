@@ -1,4 +1,3 @@
-use crate::times::{Time, TimeUnits};
 use std::fmt::{self, Display, Formatter};
 use std::fs::{self, read_to_string};
 use std::io;
@@ -8,7 +7,9 @@ use std::str::FromStr;
 
 #[cfg(feature = "chrono")]
 pub mod chrono;
-pub mod times;
+
+mod times;
+pub use crate::times::*;
 
 mod errors;
 pub use crate::errors::*;
