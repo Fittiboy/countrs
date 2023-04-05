@@ -3,6 +3,7 @@ use std::fmt::{self, Display, Formatter};
 use std::fs::{self, read_to_string};
 use std::io;
 use std::path::Path;
+use std::str::FromStr;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Counter {
@@ -28,10 +29,10 @@ impl Display for ConversionError {
     }
 }
 
-impl TryFrom<String> for Direction {
-    type Error = ConversionError;
+impl FromStr for Direction {
+    type Err = ConversionError;
 
-    fn try_from(string: String) -> Result<Self, ConversionError> {
+    fn from_str(string: &str) -> Result<Self, ConversionError> {
         if string == "Up" {
             Ok(Direction::Up)
         } else if string == "Down" {
@@ -76,7 +77,7 @@ impl Counter {
         let lines = read_to_string(path)?;
         let mut lines = lines.split("\n");
         match (lines.next(), lines.next(), lines.next()) {
-            (Some(start), Some(end), Some(duration)) => {
+            (Some(start), Some(end), Some(direction)) => {
                 let start = DateTime::parse_from_rfc3339(start)
                     .map_err(|_| {
                         io::Error::new(
@@ -93,7 +94,7 @@ impl Counter {
                         )
                     })?
                     .into();
-                let direction = match Direction::try_from(duration.to_string()) {
+                let direction = match direction.parse() {
                     Ok(direction) => direction,
                     Err(_) => {
                         return Err(io::Error::new(
