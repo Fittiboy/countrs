@@ -1,3 +1,4 @@
+#[cfg(feature = "chrono")]
 use countrs::times::{Duration, Time, TimeStamp, TimeUnits};
 use countrs::Counter;
 

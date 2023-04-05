@@ -6,6 +6,8 @@ use std::ops::Sub;
 use std::path::Path;
 use std::str::FromStr;
 
+#[cfg(feature = "chrono")]
+pub mod chrono;
 pub mod times;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
