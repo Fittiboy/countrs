@@ -1,5 +1,8 @@
 use chrono::{DateTime, Duration, Utc};
 use std::fmt::{self, Display, Formatter};
+use std::fs::{self, read_to_string};
+use std::io;
+use std::path::Path;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Counter {
@@ -12,6 +15,31 @@ pub struct Counter {
 pub enum Direction {
     Up,
     Down,
+}
+
+#[derive(Debug)]
+pub struct ConversionError;
+
+impl std::error::Error for ConversionError {}
+
+impl Display for ConversionError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+impl TryFrom<String> for Direction {
+    type Error = ConversionError;
+
+    fn try_from(string: String) -> Result<Self, ConversionError> {
+        if string == "Up" {
+            Ok(Direction::Up)
+        } else if string == "Down" {
+            Ok(Direction::Down)
+        } else {
+            Err(ConversionError)
+        }
+    }
 }
 
 impl Counter {
@@ -28,6 +56,65 @@ impl Counter {
             start: start.unwrap_or_default(),
             end: end.unwrap_or_default() + Duration::seconds(1),
             direction: Direction::Up,
+        }
+    }
+
+    pub fn to_file<T: AsRef<Path>>(&self, path: T) -> io::Result<()> {
+        fs::write(
+            path,
+            format!(
+                "{}\n{}\n{}",
+                self.start.to_rfc3339(),
+                self.end.to_rfc3339(),
+                self.direction.to_string()
+            ),
+        )?;
+        Ok(())
+    }
+
+    pub fn from_file<T: AsRef<Path>>(path: T) -> io::Result<Counter> {
+        let lines = read_to_string(path)?;
+        let mut lines = lines.split("\n");
+        match (lines.next(), lines.next(), lines.next()) {
+            (Some(start), Some(end), Some(duration)) => {
+                let start = DateTime::parse_from_rfc3339(start)
+                    .map_err(|_| {
+                        io::Error::new(
+                            io::ErrorKind::InvalidData,
+                            "File does not contain valid start data",
+                        )
+                    })?
+                    .into();
+                let end = DateTime::parse_from_rfc3339(end)
+                    .map_err(|_| {
+                        io::Error::new(
+                            io::ErrorKind::InvalidData,
+                            "File does not contain valid end data",
+                        )
+                    })?
+                    .into();
+                let direction = match Direction::try_from(duration.to_string()) {
+                    Ok(direction) => direction,
+                    Err(_) => {
+                        return Err(io::Error::new(
+                            io::ErrorKind::InvalidData,
+                            "File doesn ot contain valid direciton data",
+                        ))
+                    }
+                };
+
+                Ok(Counter {
+                    start,
+                    end,
+                    direction,
+                })
+            }
+            _ => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "File does not contain valid counter data",
+                ))
+            }
         }
     }
 
@@ -88,6 +175,16 @@ impl Display for Counter {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let (hours, minutes, seconds) = self.counter();
         write!(f, "{:0>2}:{:0>2}:{:0>2}", hours, minutes, seconds)
+    }
+}
+
+impl Display for Direction {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        let string = match self {
+            Direction::Up => "Up",
+            Direction::Down => "Down",
+        };
+        write!(f, "{}", string)
     }
 }
 
@@ -191,5 +288,29 @@ mod tests {
     fn too_much_time_causes_overflow() {
         let mut counter = Counter::up(None, None);
         counter.move_start(Duration::weeks(i64::MAX)).unwrap();
+    }
+
+    #[test]
+    fn write_and_read_down() {
+        let start = Utc::now();
+        let end = start + Duration::days(3);
+
+        let counter = Counter::down(Some(start), Some(end));
+        counter.to_file("/tmp/counter_test_file_down.txt").unwrap();
+        let read_counter = Counter::from_file("/tmp/counter_test_file_down.txt").unwrap();
+
+        assert_eq!(counter, read_counter)
+    }
+
+    #[test]
+    fn write_and_read_up() {
+        let start = Utc::now();
+        let end = start + Duration::days(3);
+
+        let counter = Counter::up(Some(start), Some(end));
+        counter.to_file("/tmp/counter_test_file_up.txt").unwrap();
+        let read_counter = Counter::from_file("/tmp/counter_test_file_up.txt").unwrap();
+
+        assert_eq!(counter, read_counter)
     }
 }
