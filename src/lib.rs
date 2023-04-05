@@ -19,24 +19,24 @@ pub enum Direction {
 }
 
 #[derive(Debug)]
-pub struct ConversionError;
+pub struct InvalidDirection;
 
-impl std::error::Error for ConversionError {}
+impl std::error::Error for InvalidDirection {}
 
-impl Display for ConversionError {
+impl Display for InvalidDirection {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)
     }
 }
 
 impl FromStr for Direction {
-    type Err = ConversionError;
+    type Err = InvalidDirection;
 
-    fn from_str(string: &str) -> Result<Self, ConversionError> {
+    fn from_str(string: &str) -> Result<Self, InvalidDirection> {
         match string {
             "Up" => Ok(Direction::Up),
             "Down" => Ok(Direction::Down),
-            _ => Err(ConversionError),
+            _ => Err(InvalidDirection),
         }
     }
 }
