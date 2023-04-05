@@ -47,7 +47,7 @@ impl Counter {
     pub fn down(start: Option<DateTime<Utc>>, end: Option<DateTime<Utc>>) -> Counter {
         Counter {
             start: start.unwrap_or_default(),
-            end: end.unwrap_or_default() + Duration::seconds(1), // Time is quirky
+            end: end.unwrap_or_default(),
             direction: Direction::Down,
         }
     }
