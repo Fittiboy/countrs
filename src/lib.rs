@@ -101,17 +101,16 @@ impl Counter {
                 }
             };
 
-            Ok(Counter {
+            return Ok(Counter {
                 start,
                 end,
                 direction,
-            })
-        } else {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                "File does not contain valid counter data",
-            ));
+            });
         }
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "File does not contain valid counter data",
+        ))
     }
 
     pub fn flip(&mut self) {
