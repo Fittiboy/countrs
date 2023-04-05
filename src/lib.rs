@@ -1,4 +1,4 @@
-use crate::times::{Time, TimeOverflow, TimeUnits};
+use crate::times::{Time, TimeUnits};
 use std::fmt::{self, Display, Formatter};
 use std::fs::{self, read_to_string};
 use std::io;
@@ -9,6 +9,9 @@ use std::str::FromStr;
 #[cfg(feature = "chrono")]
 pub mod chrono;
 pub mod times;
+
+mod errors;
+pub use crate::errors::*;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Counter<T> {
@@ -21,29 +24,6 @@ pub struct Counter<T> {
 pub enum Direction {
     Up,
     Down,
-}
-
-#[derive(Debug)]
-pub struct InvalidDirection;
-
-impl std::error::Error for InvalidDirection {}
-
-impl Display for InvalidDirection {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
-impl FromStr for Direction {
-    type Err = InvalidDirection;
-
-    fn from_str(string: &str) -> Result<Self, InvalidDirection> {
-        match string {
-            "Up" => Ok(Direction::Up),
-            "Down" => Ok(Direction::Down),
-            _ => Err(InvalidDirection),
-        }
-    }
 }
 
 impl<T, D> Counter<T>
@@ -151,6 +131,18 @@ where
     }
 }
 
+impl FromStr for Direction {
+    type Err = InvalidDirection;
+
+    fn from_str(string: &str) -> Result<Self, InvalidDirection> {
+        match string {
+            "Up" => Ok(Direction::Up),
+            "Down" => Ok(Direction::Down),
+            _ => Err(InvalidDirection),
+        }
+    }
+}
+
 impl<T, D> Display for Counter<T>
 where
     T: Copy + Default + Display + Time<Duration = D> + FromStr + Sub<T, Output = D>,
@@ -173,6 +165,7 @@ impl Display for Direction {
 
 #[cfg(test)]
 mod tests {
+    use crate::chrono::*;
     use crate::times::*;
     use crate::*;
 

@@ -1,26 +1,4 @@
-use std::fmt::{self, Display, Formatter};
-
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub struct TimeParserError;
-
-impl std::error::Error for TimeParserError {}
-
-impl Display for TimeParserError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", "Tried to parse invalid time string")
-    }
-}
-
-#[derive(Debug)]
-pub struct TimeOverflow;
-
-impl std::error::Error for TimeOverflow {}
-
-impl Display for TimeOverflow {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", "Time could not be added due to an overflow")
-    }
-}
+use crate::errors::TimeOverflow;
 
 pub trait Time {
     type Duration;
