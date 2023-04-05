@@ -96,7 +96,7 @@ impl Counter {
                 Err(_) => {
                     return Err(io::Error::new(
                         io::ErrorKind::InvalidData,
-                        "File doesn ot contain complete direciton data",
+                        "File doesn ot contain complete direction data",
                     ))
                 }
             };
