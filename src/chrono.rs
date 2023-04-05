@@ -2,42 +2,6 @@ use chrono::{self, DateTime, Utc};
 use std::ops::{Add, Sub};
 use std::str::FromStr;
 
-impl TimeUnits for Duration {
-    fn seconds(seconds: i64) -> Self {
-        Duration {
-            duration: chrono::Duration::seconds(seconds),
-        }
-    }
-
-    fn minutes(minutes: i64) -> Self {
-        Duration {
-            duration: chrono::Duration::minutes(minutes),
-        }
-    }
-
-    fn hours(hours: i64) -> Self {
-        Duration {
-            duration: chrono::Duration::hours(hours),
-        }
-    }
-
-    fn days(days: i64) -> Self {
-        Duration {
-            duration: chrono::Duration::days(days),
-        }
-    }
-
-    fn weeks(weeks: i64) -> Self {
-        Duration {
-            duration: chrono::Duration::weeks(weeks),
-        }
-    }
-
-    fn num_seconds(&self) -> i64 {
-        self.duration.num_seconds()
-    }
-}
-
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Default, Clone, Copy)]
 pub struct TimeStamp {
     time: DateTime<Utc>,
@@ -46,6 +10,12 @@ pub struct TimeStamp {
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Duration {
     duration: chrono::Duration,
+}
+
+impl Display for TimeStamp {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.time.to_rfc3339())
+    }
 }
 
 impl FromStr for TimeStamp {
@@ -57,12 +27,6 @@ impl FromStr for TimeStamp {
                 .map_err(|_| TimeParserError)?
                 .into(),
         })
-    }
-}
-
-impl Display for TimeStamp {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.time.to_rfc3339())
     }
 }
 
@@ -110,5 +74,41 @@ impl Time for TimeStamp {
                 .checked_add_signed(duration.duration)
                 .ok_or(TimeOverflow)?,
         })
+    }
+}
+
+impl TimeUnits for Duration {
+    fn seconds(seconds: i64) -> Self {
+        Duration {
+            duration: chrono::Duration::seconds(seconds),
+        }
+    }
+
+    fn minutes(minutes: i64) -> Self {
+        Duration {
+            duration: chrono::Duration::minutes(minutes),
+        }
+    }
+
+    fn hours(hours: i64) -> Self {
+        Duration {
+            duration: chrono::Duration::hours(hours),
+        }
+    }
+
+    fn days(days: i64) -> Self {
+        Duration {
+            duration: chrono::Duration::days(days),
+        }
+    }
+
+    fn weeks(weeks: i64) -> Self {
+        Duration {
+            duration: chrono::Duration::weeks(weeks),
+        }
+    }
+
+    fn num_seconds(&self) -> i64 {
+        self.duration.num_seconds()
     }
 }
