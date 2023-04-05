@@ -1,14 +1,16 @@
-use chrono::{DateTime, Duration, Utc};
+use crate::times::{Duration, TimeOverflow, TimeStamp};
 use std::fmt::{self, Display, Formatter};
 use std::fs::{self, read_to_string};
 use std::io;
 use std::path::Path;
 use std::str::FromStr;
 
+pub mod times;
+
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Counter {
-    pub start: DateTime<Utc>,
-    pub end: DateTime<Utc>,
+    pub start: TimeStamp,
+    pub end: TimeStamp,
     pub direction: Direction,
 }
 
@@ -42,7 +44,7 @@ impl FromStr for Direction {
 }
 
 impl Counter {
-    pub fn down(start: Option<DateTime<Utc>>, end: Option<DateTime<Utc>>) -> Counter {
+    pub fn down(start: Option<TimeStamp>, end: Option<TimeStamp>) -> Counter {
         Counter {
             start: start.unwrap_or_default(),
             end: end.unwrap_or_default(),
@@ -50,7 +52,7 @@ impl Counter {
         }
     }
 
-    pub fn up(start: Option<DateTime<Utc>>, end: Option<DateTime<Utc>>) -> Counter {
+    pub fn up(start: Option<TimeStamp>, end: Option<TimeStamp>) -> Counter {
         Counter {
             start: start.unwrap_or_default(),
             end: end.unwrap_or_default(),
@@ -63,8 +65,8 @@ impl Counter {
             path,
             format!(
                 "{}\n{}\n{}",
-                self.start.to_rfc3339(),
-                self.end.to_rfc3339(),
+                self.start.to_string(),
+                self.end.to_string(),
                 self.direction.to_string()
             ),
         )?;
@@ -75,7 +77,7 @@ impl Counter {
         let lines = read_to_string(path)?;
         let mut lines = lines.split("\n");
         if let (Some(s), Some(e), Some(d)) = (lines.next(), lines.next(), lines.next()) {
-            let start = DateTime::parse_from_rfc3339(s)
+            let start = TimeStamp::from_str(s)
                 .map_err(|_| {
                     io::Error::new(
                         io::ErrorKind::InvalidData,
@@ -83,7 +85,7 @@ impl Counter {
                     )
                 })?
                 .into();
-            let end = DateTime::parse_from_rfc3339(e)
+            let end = TimeStamp::from_str(e)
                 .map_err(|_| {
                     io::Error::new(
                         io::ErrorKind::InvalidData,
@@ -122,8 +124,8 @@ impl Counter {
 
     pub fn counter(&self) -> (i64, i64, i64) {
         let duration = match self.direction {
-            Direction::Down => self.end - Utc::now(),
-            Direction::Up => Utc::now() - self.start,
+            Direction::Down => self.end - TimeStamp::now(),
+            Direction::Up => TimeStamp::now() - self.start,
         };
         match duration.num_seconds() {
             num if num >= 0 => (num / 3600, num / 60 % 60, num % 60),
@@ -132,24 +134,13 @@ impl Counter {
     }
 
     pub fn try_move_start(&mut self, offset: Duration) -> Result<(), TimeOverflow> {
-        self.start = self.start.checked_add_signed(offset).ok_or(TimeOverflow)?;
+        self.start = self.start.add(offset)?;
         Ok(())
     }
 
     pub fn try_move_end(&mut self, offset: Duration) -> Result<(), TimeOverflow> {
-        self.end = self.end.checked_add_signed(offset).ok_or(TimeOverflow)?;
+        self.end = self.end.add(offset)?;
         Ok(())
-    }
-}
-
-#[derive(Debug)]
-pub struct TimeOverflow;
-
-impl std::error::Error for TimeOverflow {}
-
-impl Display for TimeOverflow {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", "Time could not be added due to an overflow")
     }
 }
 
@@ -172,94 +163,93 @@ impl Display for Direction {
 #[cfg(test)]
 mod tests {
     use crate::*;
-    use chrono::Utc;
 
     #[test]
     fn seconds_since() {
-        let counter = Counter::up(Some(Utc::now() - Duration::seconds(10)), None);
+        let counter = Counter::up(Some(TimeStamp::now() - Duration::seconds(10)), None);
         assert_eq!(counter.to_string(), "00:00:10")
     }
 
     #[test]
     fn seconds_until() {
-        let counter = Counter::down(None, Some(Utc::now() + Duration::seconds(10)));
+        let counter = Counter::down(None, Some(TimeStamp::now() + Duration::seconds(10)));
         assert_eq!(counter.to_string(), "00:00:09")
     }
 
     #[test]
     fn minutes_since() {
-        let counter = Counter::up(Some(Utc::now() - Duration::minutes(10)), None);
+        let counter = Counter::up(Some(TimeStamp::now() - Duration::minutes(10)), None);
         assert_eq!(counter.to_string(), "00:10:00")
     }
 
     #[test]
     fn minutes_until() {
-        let counter = Counter::down(None, Some(Utc::now() + Duration::minutes(10)));
+        let counter = Counter::down(None, Some(TimeStamp::now() + Duration::minutes(10)));
         assert_eq!(counter.to_string(), "00:09:59")
     }
 
     #[test]
     fn hours_since() {
-        let counter = Counter::up(Some(Utc::now() - Duration::hours(10)), None);
+        let counter = Counter::up(Some(TimeStamp::now() - Duration::hours(10)), None);
         assert_eq!(counter.to_string(), "10:00:00")
     }
 
     #[test]
     fn hours_until() {
-        let counter = Counter::down(None, Some(Utc::now() + Duration::hours(10)));
+        let counter = Counter::down(None, Some(TimeStamp::now() + Duration::hours(10)));
         assert_eq!(counter.to_string(), "09:59:59")
     }
 
     #[test]
     fn days_since() {
-        let counter = Counter::up(Some(Utc::now() - Duration::days(10)), None);
+        let counter = Counter::up(Some(TimeStamp::now() - Duration::days(10)), None);
         assert_eq!(counter.to_string(), "240:00:00")
     }
 
     #[test]
     fn days_until() {
-        let counter = Counter::down(None, Some(Utc::now() + Duration::days(10)));
+        let counter = Counter::down(None, Some(TimeStamp::now() + Duration::days(10)));
         assert_eq!(counter.to_string(), "239:59:59")
     }
 
     #[test]
     fn add_time_to_down() {
-        let mut counter = Counter::down(None, Some(Utc::now()));
+        let mut counter = Counter::down(None, Some(TimeStamp::now()));
         counter.try_move_end(Duration::seconds(10)).unwrap();
         assert_eq!(format!("{}", counter), "00:00:09")
     }
 
     #[test]
     fn remove_time_from_down() {
-        let mut counter = Counter::down(None, Some(Utc::now() + Duration::seconds(20)));
+        let mut counter = Counter::down(None, Some(TimeStamp::now() + Duration::seconds(20)));
         counter.try_move_end(Duration::seconds(-10)).unwrap();
         assert_eq!(counter.to_string(), "00:00:09")
     }
 
     #[test]
     fn remove_time_from_down_past_zero() {
-        let mut counter = Counter::down(None, Some(Utc::now()));
+        let mut counter = Counter::down(None, Some(TimeStamp::now()));
         counter.try_move_end(Duration::seconds(-10)).unwrap();
         assert_eq!(counter.to_string(), "00:00:00")
     }
 
     #[test]
     fn add_time_to_up() {
-        let mut counter = Counter::up(Some(Utc::now()), None);
+        let mut counter = Counter::up(Some(TimeStamp::now()), None);
         counter.try_move_start(Duration::seconds(-10)).unwrap();
         assert_eq!(counter.to_string(), "00:00:10")
     }
 
     #[test]
     fn remove_time_from_up() {
-        let mut counter = Counter::up(Some(Utc::now() - Duration::seconds(20)), None);
+        let mut counter = Counter::up(Some(TimeStamp::now() - Duration::seconds(20)), None);
         counter.try_move_start(Duration::seconds(10)).unwrap();
         assert_eq!(counter.to_string(), "00:00:10")
     }
 
     #[test]
     fn add_time_to_up_past_zero() {
-        let mut counter = Counter::up(Some(Utc::now()), None);
+        let mut counter = Counter::up(Some(TimeStamp::now()), None);
         counter.try_move_start(Duration::seconds(10)).unwrap();
         assert_eq!(counter.to_string(), "00:00:00")
     }
@@ -273,7 +263,7 @@ mod tests {
 
     #[test]
     fn write_and_read_down() {
-        let start = Utc::now();
+        let start = TimeStamp::now();
         let end = start + Duration::days(3);
 
         let counter = Counter::down(Some(start), Some(end));
@@ -285,7 +275,7 @@ mod tests {
 
     #[test]
     fn write_and_read_up() {
-        let start = Utc::now();
+        let start = TimeStamp::now();
         let end = start + Duration::days(3);
 
         let counter = Counter::up(Some(start), Some(end));
@@ -297,7 +287,7 @@ mod tests {
 
     #[test]
     fn flip_up_and_down() {
-        let start = Utc::now() - Duration::seconds(10);
+        let start = TimeStamp::now() - Duration::seconds(10);
         let end = start + Duration::seconds(20);
         let mut counter = Counter::down(Some(start), Some(end));
         assert_eq!(counter.to_string(), "00:00:09");
