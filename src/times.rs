@@ -5,7 +5,7 @@ pub trait Time {
 
     fn now() -> Self;
 
-    fn add(&self, duration: Self::Duration) -> Result<Self, TimeOverflow>
+    fn add(self, duration: Self::Duration) -> Result<Self, TimeOverflow>
     where
         Self: Sized;
 }

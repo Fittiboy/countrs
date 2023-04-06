@@ -5,6 +5,9 @@ use std::ops::Sub;
 use std::path::Path;
 use std::str::FromStr;
 
+#[cfg(feature = "types")]
+pub mod types;
+
 #[cfg(feature = "chrono")]
 pub mod chrono;
 

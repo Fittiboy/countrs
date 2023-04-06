@@ -17,7 +17,7 @@ impl Time for i64 {
         0
     }
 
-    fn add(&self, duration: Self::Duration) -> Result<Self, TimeOverflow> {
+    fn add(self, duration: Self::Duration) -> Result<Self, TimeOverflow> {
         Ok(self + duration)
     }
 }
