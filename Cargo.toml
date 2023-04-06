@@ -1,6 +1,6 @@
 [package]
 name = "countrs"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 authors = ["Fitti <dev@fitti.io>"]
 description = "A simple countdown (or up!) with adjustable start and end times"
