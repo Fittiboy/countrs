@@ -1,6 +1,6 @@
 //! This module implements the `Time` and `TimeUnits` traits
 //! for `chrono`'s `DateTime<Tz>`, as long as `From<DateTime<Utc>>`
-//! is implemented for `DateTime<Tz>`
+//! is implemented for `DateTime<Tz>`.
 use crate::errors::TimeOverflow;
 use crate::{Time, TimeUnits};
 use chrono::{DateTime, Duration, TimeZone, Utc};
