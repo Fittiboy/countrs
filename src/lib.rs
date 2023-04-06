@@ -19,7 +19,7 @@ pub use crate::errors::*;
 
 /// A counter stores `start` and `end` times, and implements `Display`
 /// to either show the time passed since `start`, or until `end`,
-/// formatted as `HH+:MM:SS`.  
+/// formatted as `HH(+):MM:SS`.  
 /// The timer will not go down past 00:00:00.
 /// # Examples
 /// Basic functionality is very simple:
