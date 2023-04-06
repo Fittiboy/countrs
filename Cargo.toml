@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["Fitti <dev@fitti.io>"]
 description = "A simple countdown (or up!) with adjustable start and end times"
 repository = "https://github.com/Fittiboy/countrs"
-license-file = "LICENSE"
+license = "GPL-3.0-or-later"
 keywords = ["timer", "countdown", "subathon", "time", "stopwatch"]
 categories = ["date-and-time"]
 
