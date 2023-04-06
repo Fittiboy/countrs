@@ -13,13 +13,5 @@ pub trait Time {
 pub trait TimeUnits {
     fn seconds(seconds: i64) -> Self;
 
-    fn minutes(minutes: i64) -> Self;
-
-    fn hours(hours: i64) -> Self;
-
-    fn days(days: i64) -> Self;
-
-    fn weeks(weeks: i64) -> Self;
-
     fn num_seconds(&self) -> i64;
 }

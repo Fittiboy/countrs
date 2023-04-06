@@ -88,30 +88,6 @@ impl TimeUnits for Duration {
         }
     }
 
-    fn minutes(minutes: i64) -> Self {
-        Duration {
-            duration: chrono::Duration::minutes(minutes),
-        }
-    }
-
-    fn hours(hours: i64) -> Self {
-        Duration {
-            duration: chrono::Duration::hours(hours),
-        }
-    }
-
-    fn days(days: i64) -> Self {
-        Duration {
-            duration: chrono::Duration::days(days),
-        }
-    }
-
-    fn weeks(weeks: i64) -> Self {
-        Duration {
-            duration: chrono::Duration::weeks(weeks),
-        }
-    }
-
     fn num_seconds(&self) -> i64 {
         self.duration.num_seconds()
     }
