@@ -37,22 +37,22 @@ impl FromStr for TimeStamp {
     }
 }
 
-impl Add<Duration> for TimeStamp {
+impl<T: Into<Duration>> Add<T> for TimeStamp {
     type Output = TimeStamp;
 
-    fn add(self, duration: Duration) -> Self::Output {
+    fn add(self, duration: T) -> Self::Output {
         TimeStamp {
-            time: self.time + duration.duration,
+            time: self.time + duration.into().duration,
         }
     }
 }
 
-impl Sub<Duration> for TimeStamp {
+impl<T: Into<Duration>> Sub<T> for TimeStamp {
     type Output = TimeStamp;
 
-    fn sub(self, duration: Duration) -> Self::Output {
+    fn sub(self, duration: T) -> Self::Output {
         TimeStamp {
-            time: self.time - duration.duration,
+            time: self.time - duration.into().duration,
         }
     }
 }
@@ -93,5 +93,11 @@ impl TimeUnits for Duration {
 
     fn num_seconds(&self) -> i64 {
         self.duration.num_seconds()
+    }
+}
+
+impl From<i64> for Duration {
+    fn from(num: i64) -> Duration {
+        Duration::seconds(num)
     }
 }

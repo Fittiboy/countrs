@@ -27,10 +27,9 @@ pub use crate::errors::*;
 /// # use countrs::{Counter, Time, TimeUnits};
 /// # use countrs::types::{Duration, TimeStamp};
 /// let now = TimeStamp::now();
-/// let ten_minutes = Duration::seconds(10 * 60);
 /// let mut counter = Counter::down(
-///     Some(now - ten_minutes),
-///     Some(now + ten_minutes)
+///     Some(now - 600),
+///     Some(now + 600)
 /// );
 ///
 /// // A small amount of time will have passed since `now` was assigned
@@ -44,7 +43,7 @@ pub use crate::errors::*;
 /// # use countrs::{Counter, Time, TimeUnits};
 /// # use countrs::types::{Duration, TimeStamp};
 /// let mut counter = Counter::up(Some(TimeStamp::now()), None);
-/// counter.try_move_start(Duration::seconds(-30)).unwrap();
+/// counter.try_move_start(-30).unwrap();
 ///
 /// assert_eq!(counter.to_string(), "00:00:30")
 /// ```
@@ -157,13 +156,13 @@ where
         }
     }
 
-    pub fn try_move_start(&mut self, offset: D) -> Result<(), TimeOverflow> {
-        self.start = self.start.add(offset)?;
+    pub fn try_move_start(&mut self, offset: impl Into<D>) -> Result<(), TimeOverflow> {
+        self.start = self.start.add(offset.into())?;
         Ok(())
     }
 
-    pub fn try_move_end(&mut self, offset: D) -> Result<(), TimeOverflow> {
-        self.end = self.end.add(offset)?;
+    pub fn try_move_end(&mut self, offset: impl Into<D>) -> Result<(), TimeOverflow> {
+        self.end = self.end.add(offset.into())?;
         Ok(())
     }
 }
