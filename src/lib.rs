@@ -85,6 +85,8 @@ where
         }
     }
 
+    /// Calls `to_string` on `start`, `end`, and `direction`, and `std::fs::write`s each
+    /// to one line in a file, in that order.
     pub fn to_file<P: AsRef<Path>>(&self, path: P) -> io::Result<()> {
         fs::write(
             path,
@@ -98,6 +100,9 @@ where
         Ok(())
     }
 
+    /// Tries converting the first three lines of a file (read by `std::fs::read_to_string`)
+    /// into a `Counter` by attempting to parse them into `start`, `end`, and `direction`
+    /// respectively, calling `from_str`.
     pub fn from_file<P: AsRef<Path>>(path: P) -> io::Result<Counter<T>> {
         let lines = read_to_string(path)?;
         let mut lines = lines.split("\n");
@@ -140,6 +145,7 @@ where
         ))
     }
 
+    /// Changes the direction of the Counter between Up/Down.
     pub fn flip(&mut self) {
         self.direction = match self.direction {
             Direction::Up => Direction::Down,
@@ -147,7 +153,7 @@ where
         };
     }
 
-    pub fn counter(&self) -> (i64, i64, i64) {
+    fn counter(&self) -> (i64, i64, i64) {
         let duration = match self.direction {
             Direction::Down => self.end - T::now(),
             Direction::Up => T::now() - self.start,
@@ -158,13 +164,13 @@ where
         }
     }
 
-    pub fn try_move_start(&mut self, offset: impl Into<D>) -> Result<(), TimeOverflow> {
-        self.start = self.start.add(offset.into())?;
+    pub fn try_move_start(&mut self, seconds: impl Into<D>) -> Result<(), TimeOverflow> {
+        self.start = self.start.add(seconds.into())?;
         Ok(())
     }
 
-    pub fn try_move_end(&mut self, offset: impl Into<D>) -> Result<(), TimeOverflow> {
-        self.end = self.end.add(offset.into())?;
+    pub fn try_move_end(&mut self, seconds: impl Into<D>) -> Result<(), TimeOverflow> {
+        self.end = self.end.add(seconds.into())?;
         Ok(())
     }
 }
