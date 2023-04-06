@@ -54,6 +54,8 @@ pub struct Counter<T> {
     pub direction: Direction,
 }
 
+/// Specifies whether to count `Up` from a starting time,
+/// or `Down` from a target end time.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Direction {
     Up,
@@ -167,6 +169,7 @@ where
     }
 }
 
+/// "Up" -> `Up`, "Down" -> `Down`
 impl FromStr for Direction {
     type Err = InvalidDirection;
 
@@ -179,6 +182,7 @@ impl FromStr for Direction {
     }
 }
 
+/// Displayed as "HH(+):MM:SS", not below "00:00:00"
 impl<T, D> Display for Counter<T>
 where
     T: Copy + Default + Display + Time<Duration = D> + FromStr + Sub<T, Output = D>,
@@ -190,6 +194,7 @@ where
     }
 }
 
+/// `Up` -> "Up", `Down` -> "Down"
 impl Display for Direction {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
