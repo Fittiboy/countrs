@@ -17,6 +17,37 @@ pub use crate::times::*;
 mod errors;
 pub use crate::errors::*;
 
+/// A counter stores `start` and `end` times, and implements `Display`
+/// to either show the time passed since `start`, or until `end`,
+/// formatted as `HH+:MM:SS`.  
+/// The timer will not go down past 00:00:00.
+/// # Examples
+/// Basic functionality is very simple:
+/// ```rust
+/// # use countrs::{Counter, Time, TimeUnits};
+/// # use countrs::types::{Duration, TimeStamp};
+/// let now = TimeStamp::now();
+/// let ten_minutes = Duration::seconds(10 * 60);
+/// let mut counter = Counter::down(
+///     Some(now - ten_minutes),
+///     Some(now + ten_minutes)
+/// );
+///
+/// // A small amount of time will have passed since `now` was assigned
+/// assert_eq!(counter.to_string(), "00:09:59");
+/// counter.flip();
+/// // It now counts up from `start`
+/// assert_eq!(counter.to_string(), "00:10:00")
+/// ```
+/// Both `start` and `end` times are adjustable:
+/// ```rust
+/// # use countrs::{Counter, Time, TimeUnits};
+/// # use countrs::types::{Duration, TimeStamp};
+/// let mut counter = Counter::up(Some(TimeStamp::now()), None);
+/// counter.try_move_start(Duration::seconds(-30)).unwrap();
+///
+/// assert_eq!(counter.to_string(), "00:00:30")
+/// ```
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Counter<T> {
     pub start: T,
@@ -35,6 +66,7 @@ where
     T: Copy + Default + Display + Time<Duration = D> + FromStr + Sub<T, Output = D>,
     D: TimeUnits,
 {
+    /// If given `None`, the default value for `T` will be assigned.
     pub fn down(start: Option<T>, end: Option<T>) -> Counter<T> {
         Counter {
             start: start.unwrap_or_default(),
@@ -43,6 +75,7 @@ where
         }
     }
 
+    /// If given `None`, the default value for `T` will be assigned.
     pub fn up(start: Option<T>, end: Option<T>) -> Counter<T> {
         Counter {
             start: start.unwrap_or_default(),
