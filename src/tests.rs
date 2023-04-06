@@ -1,107 +1,129 @@
-use crate::chrono::*;
 use crate::*;
+
+impl TimeUnits for i64 {
+    fn num_seconds(&self) -> i64 {
+        *self
+    }
+
+    fn seconds(seconds: i64) -> i64 {
+        seconds
+    }
+}
+
+impl Time for i64 {
+    type Duration = i64;
+
+    fn now() -> Self {
+        0
+    }
+
+    fn add(self, duration: Self::Duration) -> Result<Self, TimeOverflow> {
+        Ok(self + duration)
+    }
+}
 
 #[test]
 fn seconds_since() {
-    let counter = Counter::up(Some(TimeStamp::now() - Duration::seconds(10)), None);
+    let counter = Counter::up(Some(-10), None);
     assert_eq!(counter.to_string(), "00:00:10")
 }
 
 #[test]
 fn seconds_until() {
-    let counter = Counter::down(None, Some(TimeStamp::now() + Duration::seconds(10)));
-    assert_eq!(counter.to_string(), "00:00:09")
+    let counter = Counter::down(None, Some(10));
+    assert_eq!(counter.to_string(), "00:00:10")
 }
 
 #[test]
 fn minutes_since() {
-    let counter = Counter::up(Some(TimeStamp::now() - Duration::minutes(10)), None);
+    let counter = Counter::up(Some(-60 * 10), None);
     assert_eq!(counter.to_string(), "00:10:00")
 }
 
 #[test]
 fn minutes_until() {
-    let counter = Counter::down(None, Some(TimeStamp::now() + Duration::minutes(10)));
-    assert_eq!(counter.to_string(), "00:09:59")
+    let counter = Counter::down(None, Some(60 * 10));
+    assert_eq!(counter.to_string(), "00:10:00")
 }
 
 #[test]
 fn hours_since() {
-    let counter = Counter::up(Some(TimeStamp::now() - Duration::hours(10)), None);
+    let counter = Counter::up(Some(-3600 * 10), None);
     assert_eq!(counter.to_string(), "10:00:00")
 }
 
 #[test]
 fn hours_until() {
-    let counter = Counter::down(None, Some(TimeStamp::now() + Duration::hours(10)));
-    assert_eq!(counter.to_string(), "09:59:59")
+    let counter = Counter::down(None, Some(3600 * 10));
+    assert_eq!(counter.to_string(), "10:00:00")
 }
 
 #[test]
 fn days_since() {
-    let counter = Counter::up(Some(TimeStamp::now() - Duration::days(10)), None);
+    let counter = Counter::up(Some(-86400 * 10), None);
     assert_eq!(counter.to_string(), "240:00:00")
 }
 
 #[test]
 fn days_until() {
-    let counter = Counter::down(None, Some(TimeStamp::now() + Duration::days(10)));
-    assert_eq!(counter.to_string(), "239:59:59")
+    let counter = Counter::down(None, Some(86400 * 10));
+    assert_eq!(counter.to_string(), "240:00:00")
 }
 
 #[test]
 fn add_time_to_down() {
-    let mut counter = Counter::down(None, Some(TimeStamp::now()));
-    counter.try_move_end(Duration::seconds(10)).unwrap();
-    assert_eq!(format!("{}", counter), "00:00:09")
+    let mut counter = Counter::down(None, Some(0));
+    counter.try_move_end(10).unwrap();
+    assert_eq!(format!("{}", counter), "00:00:10")
 }
 
 #[test]
 fn remove_time_from_down() {
-    let mut counter = Counter::down(None, Some(TimeStamp::now() + Duration::seconds(20)));
-    counter.try_move_end(Duration::seconds(-10)).unwrap();
-    assert_eq!(counter.to_string(), "00:00:09")
+    let mut counter = Counter::down(None, Some(20));
+    counter.try_move_end(i64::seconds(-10)).unwrap();
+    assert_eq!(counter.to_string(), "00:00:10")
 }
 
 #[test]
 fn remove_time_from_down_past_zero() {
-    let mut counter = Counter::down(None, Some(TimeStamp::now()));
-    counter.try_move_end(Duration::seconds(-10)).unwrap();
+    let mut counter = Counter::down(None, Some(0));
+    counter.try_move_end(i64::seconds(-10)).unwrap();
     assert_eq!(counter.to_string(), "00:00:00")
 }
 
 #[test]
 fn add_time_to_up() {
-    let mut counter = Counter::up(Some(TimeStamp::now()), None);
-    counter.try_move_start(Duration::seconds(-10)).unwrap();
+    let mut counter = Counter::up(Some(0), None);
+    counter.try_move_start(i64::seconds(-10)).unwrap();
     assert_eq!(counter.to_string(), "00:00:10")
 }
 
 #[test]
 fn remove_time_from_up() {
-    let mut counter = Counter::up(Some(TimeStamp::now() - Duration::seconds(20)), None);
-    counter.try_move_start(Duration::seconds(10)).unwrap();
+    let mut counter = Counter::up(Some(-20), None);
+    counter.try_move_start(10).unwrap();
     assert_eq!(counter.to_string(), "00:00:10")
 }
 
 #[test]
 fn add_time_to_up_past_zero() {
-    let mut counter = Counter::up(Some(TimeStamp::now()), None);
-    counter.try_move_start(Duration::seconds(10)).unwrap();
+    let mut counter = Counter::up(Some(0), None);
+    counter.try_move_start(10).unwrap();
     assert_eq!(counter.to_string(), "00:00:00")
 }
 
 #[test]
 #[should_panic]
 fn too_much_time_causes_overflow() {
-    let mut counter = Counter::<TimeStamp>::up(None, None);
-    counter.try_move_start(Duration::weeks(i64::MAX)).unwrap();
+    let mut counter = Counter::<i64>::up(None, None);
+    counter.try_move_start(i64::MAX).unwrap();
+    counter.try_move_start(1).unwrap();
 }
 
 #[test]
 fn write_and_read_down() {
-    let start = TimeStamp::now();
-    let end = start + Duration::days(3);
+    let start = 0;
+    let end = start + 86400 * 3;
 
     let counter = Counter::down(Some(start), Some(end));
     counter.to_file("/tmp/counter_test_file_down.txt").unwrap();
@@ -112,8 +134,8 @@ fn write_and_read_down() {
 
 #[test]
 fn write_and_read_up() {
-    let start = TimeStamp::now();
-    let end = start + Duration::days(3);
+    let start = 0;
+    let end = start + 86400 * 3;
 
     let counter = Counter::up(Some(start), Some(end));
     counter.to_file("/tmp/counter_test_file_up.txt").unwrap();
@@ -124,12 +146,12 @@ fn write_and_read_up() {
 
 #[test]
 fn flip_up_and_down() {
-    let start = TimeStamp::now() - Duration::seconds(10);
-    let end = start + Duration::seconds(20);
+    let start = -10;
+    let end = start + 20;
     let mut counter = Counter::down(Some(start), Some(end));
-    assert_eq!(counter.to_string(), "00:00:09");
+    assert_eq!(counter.to_string(), "00:00:10");
     counter.flip();
     assert_eq!(counter.to_string(), "00:00:10");
     counter.flip();
-    assert_eq!(counter.to_string(), "00:00:09");
+    assert_eq!(counter.to_string(), "00:00:10");
 }
