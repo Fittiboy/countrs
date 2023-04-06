@@ -1,3 +1,6 @@
+//! This module provides `TimeStamp` and `Duration` types which implement
+//! the `Time` and `TimeUnits` traits respectively, for use with `Counter`
+//! and its methods.
 use crate::errors::{TimeOverflow, TimeParserError};
 use crate::times::Time;
 use crate::TimeUnits;
