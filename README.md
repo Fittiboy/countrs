@@ -1,11 +1,9 @@
 # About
-This library provides a simple method for counting down to (or up from) a point in time that can be shifted back and forth.  
-# Examples
-
 A counter stores `start` and `end` times, and implements `Display`
 to either show the time passed since `start`, or until `end`,
 formatted as `HH(+):MM:SS`.  
 The timer will not go down past 00:00:00.
+
 # Examples
 Basic functionality is very simple:
 ```rust
