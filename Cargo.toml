@@ -2,6 +2,12 @@
 name = "countrs"
 version = "0.1.0"
 edition = "2021"
+authors = ["Fitti <dev@fitti.io>"]
+description = "A simple countdown (or up!) with adjustable start and end times"
+repository = "https://github.com/Fittiboy/countrs"
+license-file = "LICENSE"
+keywords = ["timer", "countdown", "subathon", "time", "stopwatch"]
+categories = ["date-and-time"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
