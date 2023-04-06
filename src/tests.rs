@@ -71,6 +71,20 @@ fn days_until() {
 }
 
 #[test]
+fn hours_minutes_seconds() {
+    let counter = Counter::down(None, Some(100));
+    assert_eq!(
+        counter.to_string(),
+        format!(
+            "{:0>2}:{:0>2}:{:0>2}",
+            counter.hours(),
+            counter.minutes() % 60,
+            counter.seconds() % 60,
+        )
+    )
+}
+
+#[test]
 fn add_time_to_down() {
     let mut counter = Counter::down(None, Some(0));
     counter.try_move_end(10).unwrap();

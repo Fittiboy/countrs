@@ -153,14 +153,46 @@ where
         };
     }
 
-    fn counter(&self) -> (i64, i64, i64) {
-        let duration = match self.direction {
+    fn duration(&self) -> D {
+        match self.direction {
             Direction::Down => self.end - T::now(),
             Direction::Up => T::now() - self.start,
-        };
+        }
+    }
+
+    /// Returns the tuple of (hours, minutes, seconds) shown on the countdown(/up)
+    pub fn counter(&self) -> (i64, i64, i64) {
+        let duration = self.duration();
         match duration.num_seconds() {
             num if num >= 0 => (num / 3600, num / 60 % 60, num % 60),
             _ => (0, 0, 0),
+        }
+    }
+
+    /// Returns the total number of full hours on the countdown(/up)
+    pub fn hours(&self) -> i64 {
+        let duration = self.duration();
+        match duration.num_seconds() {
+            num if num >= 0 => num / 3600,
+            _ => 0,
+        }
+    }
+
+    /// Returns the total number of full minutes on the countdown(/up)
+    pub fn minutes(&self) -> i64 {
+        let duration = self.duration();
+        match duration.num_seconds() {
+            num if num >= 0 => num / 60,
+            _ => 0,
+        }
+    }
+
+    /// Returns the total number of seconds on the countdown(/up)
+    pub fn seconds(&self) -> i64 {
+        let duration = self.duration();
+        match duration.num_seconds() {
+            num if num >= 0 => num,
+            _ => 0,
         }
     }
 
