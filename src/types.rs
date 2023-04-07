@@ -74,7 +74,7 @@ impl Time for TimeStamp {
         TimeStamp { time: Utc::now() }
     }
 
-    fn add(self, duration: Duration) -> Result<TimeStamp, TimeOverflow> {
+    fn add_seconds(self, duration: Duration) -> Result<TimeStamp, TimeOverflow> {
         Ok(TimeStamp {
             time: self
                 .time

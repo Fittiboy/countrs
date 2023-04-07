@@ -197,12 +197,12 @@ where
     }
 
     pub fn try_move_start(&mut self, seconds: impl Into<D>) -> Result<(), TimeOverflow> {
-        self.start = self.start.add(seconds.into())?;
+        self.start = self.start.add_seconds(seconds.into())?;
         Ok(())
     }
 
     pub fn try_move_end(&mut self, seconds: impl Into<D>) -> Result<(), TimeOverflow> {
-        self.end = self.end.add(seconds.into())?;
+        self.end = self.end.add_seconds(seconds.into())?;
         Ok(())
     }
 }

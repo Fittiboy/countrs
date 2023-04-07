@@ -17,7 +17,7 @@ where
         Utc::now().into()
     }
 
-    fn add(self, duration: Self::Duration) -> Result<Self, TimeOverflow>
+    fn add_seconds(self, duration: Self::Duration) -> Result<Self, TimeOverflow>
     where
         Self: Sized,
     {
