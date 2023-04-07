@@ -90,12 +90,7 @@ where
     pub fn to_file<P: AsRef<Path>>(&self, path: P) -> io::Result<()> {
         fs::write(
             path,
-            format!(
-                "{}\n{}\n{}",
-                self.start,
-                self.end,
-                self.direction
-            ),
+            format!("{}\n{}\n{}", self.start, self.end, self.direction),
         )?;
         Ok(())
     }
@@ -107,28 +102,23 @@ where
         let lines = read_to_string(path)?;
         let mut lines = lines.split('\n');
         if let (Some(s), Some(e), Some(d)) = (lines.next(), lines.next(), lines.next()) {
-            let start = T::from_str(s)
-                .map_err(|_| {
-                    io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        "File does not contain valid start data",
-                    )
-                })?;
-            let end = T::from_str(e)
-                .map_err(|_| {
-                    io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        "File does not contain valid end data",
-                    )
-                })?;
-            let direction = match d.parse() {
-                Ok(direction) => direction,
-                Err(_) => {
-                    return Err(io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        "File doesn ot contain complete direction data",
-                    ))
-                }
+            let start = T::from_str(s).map_err(|_| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "File does not contain valid start data",
+                )
+            })?;
+            let end = T::from_str(e).map_err(|_| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "File does not contain valid end data",
+                )
+            })?;
+            let Ok(direction) = d.parse() else {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "File doesn ot contain complete direction data",
+                ))
             };
 
             return Ok(Counter {
