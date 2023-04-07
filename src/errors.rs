@@ -18,7 +18,7 @@ impl std::error::Error for TimeParserError {}
 
 impl Display for TimeParserError {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "{}", "Tried to parse invalid time string")
+        write!(f, "Tried to parse invalid time string")
     }
 }
 
@@ -29,6 +29,6 @@ impl std::error::Error for TimeOverflow {}
 
 impl Display for TimeOverflow {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "{}", "Time could not be added due to an overflow")
+        write!(f, "Time could not be added due to an overflow")
     }
 }

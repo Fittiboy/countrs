@@ -92,9 +92,9 @@ where
             path,
             format!(
                 "{}\n{}\n{}",
-                self.start.to_string(),
-                self.end.to_string(),
-                self.direction.to_string()
+                self.start,
+                self.end,
+                self.direction
             ),
         )?;
         Ok(())
@@ -105,7 +105,7 @@ where
     /// respectively, calling `from_str`.
     pub fn from_file<P: AsRef<Path>>(path: P) -> io::Result<Counter<T>> {
         let lines = read_to_string(path)?;
-        let mut lines = lines.split("\n");
+        let mut lines = lines.split('\n');
         if let (Some(s), Some(e), Some(d)) = (lines.next(), lines.next(), lines.next()) {
             let start = T::from_str(s)
                 .map_err(|_| {
@@ -113,16 +113,14 @@ where
                         io::ErrorKind::InvalidData,
                         "File does not contain valid start data",
                     )
-                })?
-                .into();
+                })?;
             let end = T::from_str(e)
                 .map_err(|_| {
                     io::Error::new(
                         io::ErrorKind::InvalidData,
                         "File does not contain valid end data",
                     )
-                })?
-                .into();
+                })?;
             let direction = match d.parse() {
                 Ok(direction) => direction,
                 Err(_) => {
