@@ -18,3 +18,4 @@ chrono = ["dep:chrono"]
 
 [dependencies]
 chrono = { version = "0.4.24", optional = true }
+proptest = "1.1.0"

@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used)]
 use crate::*;
+use proptest::prelude::*;
 
 impl TimeUnits for i64 {
     fn num_seconds(&self) -> i64 {
@@ -169,4 +170,21 @@ fn flip_up_and_down() {
     assert_eq!(counter.to_string(), "00:00:10");
     counter.flip();
     assert_eq!(counter.to_string(), "00:00:10");
+}
+
+proptest! {
+    #[test]
+    fn always_correct_format(s in -5_000_000i64..5_000_000_i64,
+                             e in 0_i64..10_000_000_i64) {
+        let counter = Counter::down(Some(s), Some(e));
+        let counter = counter.to_string();
+        let mut counter = counter.split(':');
+        let hours: i64 = counter.next().unwrap().parse().unwrap();
+        let minutes: i64 = counter.next().unwrap().parse().unwrap();
+        let seconds: i64 = counter.next().unwrap().parse().unwrap();
+        assert!(0 <= seconds && seconds < 60);
+        assert!(0 <= minutes && minutes < 60);
+        assert!(0 <= hours);
+
+    }
 }
